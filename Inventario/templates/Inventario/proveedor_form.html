@@ -1,0 +1,73 @@
+{% extends 'Inventario/base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+    <div class="card card-elite shadow-lg border-0">
+        <div class="card-header bg-white py-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0 fw-bold" style="color: var(--elite-dark);">
+                    {% if form.instance.pk %}
+                        <i class="fas fa-edit me-2"></i>Edit Supplier
+                    {% else %}
+                        <i class="fas fa-handshake me-2"></i>New Supplier
+                    {% endif %}
+                </h3>
+                <a href="{% url 'proveedor_list' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Back to List
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body p-4">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <h6 class="text-uppercase text-muted fw-bold mb-3 fs-7 ls-1">Company Information</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Company Name</label>
+                        {{ form.nombre }}
+                        <div class="form-text small">Legal name of the supplier.</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Address / HQ</label>
+                        {{ form.direccion }}
+                    </div>
+                </div>
+
+                <hr class="my-4" style="opacity: 0.1">
+
+                <h6 class="text-uppercase text-muted fw-bold mb-3 fs-7 ls-1">Contact Details</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Contact Person</label>
+                        {{ form.contacto }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Phone Number</label>
+                        {{ form.telefono }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Email Address</label>
+                        {{ form.email }}
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5">
+                    <a href="{% url 'proveedor_list' %}" class="btn btn-light me-md-2 fw-bold text-muted">Cancel</a>
+                    <button type="submit" class="btn btn-elite btn-lg px-5 shadow-sm">
+                        <i class="fas fa-save me-2"></i>SAVE SUPPLIER
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

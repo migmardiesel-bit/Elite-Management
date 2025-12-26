@@ -1,0 +1,562 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login - Elite Management</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        :root {
+            --elite-dark: #435712;
+            --elite-medium: #5a7518;
+            --elite-light: #AAB646;
+            --elite-accent: #8a9a3b;
+            --text-dark: #2a2a2a;
+            --text-light: #6c757d;
+            --border-light: #e0e0e0;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--elite-dark);
+            background-image: linear-gradient(135deg, var(--elite-dark) 0%, #2c3a0b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Animated background particles */
+        .particles-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .particle {
+            position: absolute;
+            background: rgba(170, 182, 70, 0.15);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Animated glow effect */
+        .glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(170, 182, 70, 0.2) 0%, rgba(67, 87, 18, 0) 70%);
+            animation: pulse-glow 8s infinite alternate;
+            z-index: -1;
+        }
+        
+        .glow-1 {
+            top: -150px;
+            right: -150px;
+        }
+        
+        .glow-2 {
+            bottom: -150px;
+            left: -150px;
+            animation-delay: -4s;
+        }
+        
+        @keyframes pulse-glow {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            max-width: 440px;
+            width: 100%;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: cardEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            position: relative;
+            z-index: 10;
+        }
+        
+        @keyframes cardEntrance {
+            0% {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--elite-light), var(--elite-dark), var(--elite-light));
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite linear;
+        }
+        
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+        
+        .login-header {
+            background: white;
+            padding: 50px 30px 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--elite-light) 0%, var(--elite-dark) 100%);
+            transform: scaleX(0);
+            transform-origin: left;
+            animation: expandLine 1s 0.5s forwards;
+        }
+        
+        @keyframes expandLine {
+            to {
+                transform: scaleX(1);
+            }
+        }
+        
+        .login-logo {
+            max-width: 220px;
+            height: auto;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            transform: scale(0.9);
+            opacity: 0;
+            animation: logoReveal 0.8s 0.3s forwards;
+        }
+        
+        @keyframes logoReveal {
+            0% {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            70% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .form-control {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-light);
+            padding: 16px 18px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateY(0);
+        }
+        
+        .form-control:focus {
+            background-color: white;
+            border-color: var(--elite-light);
+            box-shadow: 0 0 0 0.2rem rgba(170, 182, 70, 0.2), 0 10px 20px rgba(0,0,0,0.05);
+            transform: translateY(-3px);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: block;
+            transform: translateY(10px);
+            opacity: 0;
+            animation: labelReveal 0.6s 0.8s forwards;
+        }
+        
+        @keyframes labelReveal {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 1.8rem;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: inputReveal 0.6s forwards;
+        }
+        
+        .input-group:nth-child(1) {
+            animation-delay: 1s;
+        }
+        
+        .input-group:nth-child(2) {
+            animation-delay: 1.2s;
+        }
+        
+        @keyframes inputReveal {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            z-index: 5;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus + .input-icon {
+            color: var(--elite-light);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .input-with-icon {
+            padding-left: 50px;
+        }
+        
+        .btn-login {
+            background: linear-gradient(135deg, var(--elite-dark) 0%, var(--elite-medium) 100%);
+            color: white;
+            width: 100%;
+            padding: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border: none;
+            border-radius: 10px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(67, 87, 18, 0.3);
+            transform: translateY(0);
+            opacity: 0;
+            animation: buttonReveal 0.6s 1.4s forwards;
+        }
+        
+        @keyframes buttonReveal {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .btn-login:hover {
+            background: linear-gradient(135deg, var(--elite-medium) 0%, var(--elite-light) 100%);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(67, 87, 18, 0.4);
+        }
+        
+        .btn-login:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.7s;
+        }
+        
+        .btn-login:hover::before {
+            left: 100%;
+        }
+        
+        .btn-login .btn-text {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .btn-login .btn-loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+        
+        .btn-login.loading .btn-text {
+            opacity: 0;
+        }
+        
+        .btn-login.loading .btn-loader {
+            display: block;
+        }
+        
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+            font-size: 0.9rem;
+            padding: 14px 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transform: scale(0.9);
+            opacity: 0;
+            animation: alertPulse 0.5s forwards;
+        }
+        
+        @keyframes alertPulse {
+            0% {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            70% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .footer-text {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+            transform: translateY(10px);
+            opacity: 0;
+            animation: footerReveal 0.6s 1.6s forwards;
+        }
+        
+        @keyframes footerReveal {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        
+        .password-toggle:hover {
+            color: var(--elite-dark);
+            background: rgba(0,0,0,0.05);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .login-card {
+                border-radius: 16px;
+            }
+            
+            .login-header {
+                padding: 40px 20px 20px;
+            }
+            
+            .login-logo {
+                max-width: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles-container" id="particles"></div>
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    
+    <div class="login-card">
+        <div class="login-header">
+            <img src="{% static 'Inventario/img/logo.png' %}" alt="Elite Management" class="login-logo">
+            <h5 class="text-secondary text-uppercase fw-bold mt-2" style="font-size: 0.8rem; letter-spacing: 2px;">Property Solutions</h5>
+        </div>
+        
+        <div class="p-4 pt-4">
+            <form method="post" id="loginForm">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger mb-4">
+                    <div class="d-flex align-items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill me-2" viewBox="0 0 16 16">
+                            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                        </svg>
+                        Incorrect username or password
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <label for="username" class="form-label">USERNAME</label>
+                    <div class="input-group">
+                        <span class="input-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+                                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
+                            </svg>
+                        </span>
+                        <input type="text" id="username" name="username" class="form-control input-with-icon" placeholder="Enter your username" required autofocus>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="password" class="form-label">PASSWORD</label>
+                    <div class="input-group">
+                        <span class="input-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-lock" viewBox="0 0 16 16">
+                                <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zM5 8h6a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
+                            </svg>
+                        </span>
+                        <input type="password" id="password" name="password" class="form-control input-with-icon" placeholder="••••••••" required>
+                        <button type="button" class="password-toggle" id="togglePassword">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                                <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-login mb-3">
+                    <span class="btn-text">LOGIN</span>
+                    <div class="btn-loader"></div>
+                </button>
+                
+                <div class="footer-text">
+                    &copy; 2025 Elite Management System. All rights reserved.
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Create animated background particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 10 + 5;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                particle.style.left = `${Math.random() * 100}vw`;
+                
+                particle.style.animationDelay = `${Math.random() * 15}s`;
+                
+                const duration = 15 + Math.random() * 10;
+                particle.style.animationDuration = `${duration}s`;
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // Initialize particles on load
+        createParticles();
+
+        // Toggle to show/hide password
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            this.style.transform = 'translateY(-50%) scale(1.2)';
+            setTimeout(() => {
+                this.style.transform = 'translateY(-50%) scale(1)';
+            }, 200);
+            
+            this.innerHTML = type === 'password' ? 
+                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.

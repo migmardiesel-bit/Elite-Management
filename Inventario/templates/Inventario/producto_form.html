@@ -1,0 +1,283 @@
+{% extends 'Inventario/base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+    <div class="card card-elite shadow-lg border-0">
+        <div class="card-header bg-white py-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0 fw-bold" style="color: var(--elite-dark);">
+                    {% if form.instance.pk %}
+                        <i class="fas fa-edit me-2"></i>Edit Product
+                    {% else %}
+                        <i class="fas fa-box-open me-2"></i>New Product
+                    {% endif %}
+                </h3>
+                <a href="{% url 'producto_list' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Back to List
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body p-4">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div>
+                        <strong>Validation Error:</strong>
+                        <ul class="mb-0 mt-1">
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="section-card mb-4">
+                    <div class="section-header mb-3">
+                        <h5 class="section-title">
+                            <i class="fas fa-info-circle me-2"></i>Basic Information
+                        </h5>
+                        <div class="section-divider"></div>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Unique Code</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-barcode"></i>
+                                </span>
+                                {{ form.codigo }}
+                            </div>
+                            {% if form.codigo.errors %}
+                                <div class="text-danger small mt-1 d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {{ form.codigo.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text small">Unique identifier (e.g., KIT-001)</div>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Name / Description</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-tag"></i>
+                                </span>
+                                {{ form.nombre }}
+                            </div>
+                            {% if form.nombre.errors %}
+                                <div class="text-danger small mt-1 d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {{ form.nombre.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Category / Zone</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-folder"></i>
+                                </span>
+                                {{ form.categoria }}
+                            </div>
+                            {% if form.categoria.errors %}
+                                <div class="text-danger small mt-1 d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {{ form.categoria.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Main Supplier</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-truck"></i>
+                                </span>
+                                {{ form.proveedor }}
+                            </div>
+                            {% if form.proveedor.errors %}
+                                <div class="text-danger small mt-1 d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {{ form.proveedor.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card mb-4">
+                    <div class="section-header mb-3">
+                        <h5 class="section-title">
+                            <i class="fas fa-chart-line me-2"></i>Finance & Control
+                        </h5>
+                        <div class="section-divider"></div>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-success">Sale Price ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-success">$</span>
+                                {{ form.precio_venta }}
+                            </div>
+                            {% if form.precio_venta.errors %}
+                                <div class="text-danger small mt-1 d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {{ form.precio_venta.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-secondary">Unit Cost ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-secondary">$</span>
+                                {{ form.precio_costo }}
+                            </div>
+                            {% if form.precio_costo.errors %}
+                                <div class="text-danger small mt-1 d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {{ form.precio_costo.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-danger">Minimum Stock (Alert)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-danger">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </span>
+                                {{ form.stock_minimo }}
+                            </div>
+                            {% if form.stock_minimo.errors %}
+                                <div class="text-danger small mt-1 d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    {{ form.stock_minimo.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text small">Reorder point</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-5 pt-3 border-top">
+                    <a href="{% url 'producto_list' %}" class="btn btn-outline-secondary fw-semibold">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-elite btn-lg px-5 shadow-sm">
+                        <i class="fas fa-save me-2"></i>SAVE PRODUCT
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .section-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        border-left: 4px solid var(--elite-dark);
+    }
+    
+    .section-header {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .section-title {
+        color: var(--elite-dark);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .section-divider {
+        height: 2px;
+        background: linear-gradient(to right, var(--elite-dark), transparent);
+        width: 100%;
+    }
+    
+    .form-label {
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 6px;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--elite-dark);
+        box-shadow: 0 0 0 0.2rem rgba(var(--elite-dark-rgb), 0.25);
+    }
+    
+    .input-group-text {
+        border-radius: 6px 0 0 6px;
+    }
+    
+    .btn-elite {
+        background-color: var(--elite-dark);
+        border-color: var(--elite-dark);
+        color: white;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    
+    .btn-elite:hover {
+        background-color: var(--elite-darker);
+        border-color: var(--elite-darker);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+
+<script>
+    // UX improvement with real-time validation
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Bootstrap classes to all form fields
+        const formControls = document.querySelectorAll('input, select, textarea');
+        formControls.forEach(control => {
+            control.classList.add('form-control');
+        });
+        
+        // Real-time validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+        
+        // Visual effects on fields
+        const inputs = document.querySelectorAll('.form-control, .form-select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
+                if (this.value) {
+                    this.classList.add('has-value');
+                } else {
+                    this.classList.remove('has-value');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

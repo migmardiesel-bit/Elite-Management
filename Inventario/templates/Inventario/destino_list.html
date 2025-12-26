@@ -1,0 +1,108 @@
+{% extends 'Inventario/base.html' %}
+
+{% block page_title %}Sites & Locations{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="color: var(--elite-dark);">Sites Directory</h2>
+    <a href="{% url 'destino_create' %}" class="btn btn-elite shadow-sm">
+        <i class="fas fa-plus me-2"></i>New Site
+    </a>
+</div>
+
+<div class="card mb-4 shadow-sm border-0">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" name="q" class="form-control border-start-0 ps-0" 
+                           placeholder="Search site by name..." 
+                           value="{{ request.GET.q }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-dark w-100 fw-bold">Search</button>
+            </div>
+            
+            {% if request.GET.q %}
+            <div class="col-12 text-end mt-2">
+                <a href="{% url 'destino_list' %}" class="text-danger small text-decoration-none fw-bold">
+                    <i class="fas fa-times me-1"></i> Clear Filter
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Site Name</th>
+                    <th>Type</th>
+                    <th>Manager / Contact</th>
+                    <th>Address</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for destino in destinos %}
+                <tr>
+                    <td class="ps-4">
+                        <div class="fw-bold text-dark">
+                            <i class="fas fa-map-marker-alt me-2 text-danger"></i>{{ destino.nombre }}
+                        </div>
+                    </td>
+                    
+                    <td>
+                        {% if 'Bodega' in destino.tipo %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success">{{ destino.tipo }}</span>
+                        {% else %}
+                            <span class="badge bg-light text-dark border">{{ destino.tipo }}</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td>
+                        {% if destino.encargado %}
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded-circle p-1 me-2 text-muted">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <span>{{ destino.encargado }}</span>
+                            </div>
+                        {% else %}
+                            <span class="text-muted small">-</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td class="text-muted small">
+                        {{ destino.direccion|truncatechars:50 }}
+                    </td>
+                    
+                    <td class="text-center">
+                        <a href="{% url 'destino_edit' destino.pk %}" class="btn btn-sm btn-light text-secondary border shadow-sm" title="Edit Site">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <div class="mb-3">
+                            <i class="fas fa-map-signs fa-3x opacity-25"></i>
+                        </div>
+                        <h5>No sites found</h5>
+                        <p class="small">Use the "New Site" button to add warehouses or apartments.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

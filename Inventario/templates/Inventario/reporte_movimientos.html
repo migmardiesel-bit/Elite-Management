@@ -1,0 +1,148 @@
+{% extends 'Inventario/base.html' %}
+
+{% block page_title %}Reports & Analysis{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="color: var(--elite-dark);">Movement History</h2>
+    <a href="{% url 'movimiento_create' %}" class="btn btn-elite">
+        <i class="fas fa-plus me-2"></i>New Movement
+    </a>
+</div>
+
+<div class="card mb-4 shadow-sm border-0 card-elite">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 text-muted"><i class="fas fa-filter me-2"></i>Search & Export</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-bold text-secondary">Start Date</label>
+                <input type="date" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold text-secondary">End Date</label>
+                <input type="date" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label fw-bold text-secondary">Movement Type</label>
+                <select name="tipo" class="form-select select2">
+                    <option value="">-- All Types --</option>
+                    <option value="IN" {% if request.GET.tipo == 'IN' %}selected{% endif %}>Entry (Purchase)</option>
+                    <option value="OUT" {% if request.GET.tipo == 'OUT' %}selected{% endif %}>Exit (Usage/Sale)</option>
+                    <option value="TRANSFER" {% if request.GET.tipo == 'TRANSFER' %}selected{% endif %}>Transfer (Site to Site)</option>
+                    <option value="REPLACEMENT" {% if request.GET.tipo == 'REPLACEMENT' %}selected{% endif %}>Replacement (Swap)</option>
+                    <option value="ADJ_POS" {% if request.GET.tipo == 'ADJ_POS' %}selected{% endif %}>Adjustment (+)</option>
+                    <option value="ADJ_NEG" {% if request.GET.tipo == 'ADJ_NEG' %}selected{% endif %}>Adjustment (-)</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-dark flex-grow-1 fw-bold">
+                    <i class="fas fa-search me-2"></i>Filter
+                </button>
+                
+                <button type="submit" name="export" value="excel" class="btn btn-success fw-bold" title="Download Excel for Analysis">
+                    <i class="fas fa-file-excel"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0 align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="py-3 ps-3">Date</th>
+                        <th class="py-3">Reference</th>
+                        <th class="py-3">Type</th>
+                        <th class="py-3">Product</th>
+                        <th class="py-3 text-center">Qty</th>
+                        <th class="py-3">Logic / Location</th>
+                        <th class="py-3">User</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mov in movimientos %}
+                    <tr>
+                        <td class="ps-3 text-nowrap">{{ mov.fecha|date:"Y-m-d" }}</td>
+                        
+                        <td class="fw-bold text-secondary" style="font-size: 0.85rem;">
+                            {{ mov.referencia }}
+                        </td>
+                        
+                        <td>
+                            {% if mov.tipo == 'IN' %}
+                                <span class="badge bg-success bg-opacity-75 text-white"><i class="fas fa-arrow-down me-1"></i>PURCHASE</span>
+                            {% elif mov.tipo == 'OUT' %}
+                                <span class="badge bg-warning text-dark"><i class="fas fa-arrow-up me-1"></i>USAGE</span>
+                            {% elif mov.tipo == 'TRANSFER' %}
+                                <span class="badge bg-primary"><i class="fas fa-exchange-alt me-1"></i>TRANSFER</span>
+                            {% elif mov.tipo == 'REPLACEMENT' %}
+                                <span class="badge bg-dark"><i class="fas fa-tools me-1"></i>REPLACE</span>
+                            {% elif mov.tipo == 'ADJ_POS' %}
+                                <span class="badge bg-info text-dark">ADJUST (+)</span>
+                            {% elif mov.tipo == 'ADJ_NEG' %}
+                                <span class="badge bg-secondary">ADJUST (-)</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            <div class="fw-bold" style="color: var(--elite-dark);">{{ mov.producto.nombre }}</div>
+                            <small class="text-muted">{{ mov.producto.codigo }}</small>
+                        </td>
+                        
+                        <td class="text-center fs-5 fw-bold">
+                            {% if mov.tipo == 'IN' or mov.tipo == 'ADJ_POS' %}
+                                <span class="text-success">+{{ mov.cantidad }}</span>
+                            {% elif mov.tipo == 'TRANSFER' %}
+                                <span class="text-primary">{{ mov.cantidad }}</span>
+                            {% else %}
+                                <span class="text-danger">-{{ mov.cantidad }}</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="small">
+                            {% if mov.tipo == 'TRANSFER' %}
+                                <div class="text-danger"><i class="fas fa-sign-out-alt"></i> From: {{ mov.origen }}</div>
+                                <div class="text-success"><i class="fas fa-sign-in-alt"></i> To: {{ mov.destino }}</div>
+                            {% elif mov.tipo == 'IN' or mov.tipo == 'ADJ_POS' %}
+                                <span class="text-success"><i class="fas fa-map-marker-alt"></i> At: {{ mov.destino }}</span>
+                            {% elif mov.tipo == 'OUT' or mov.tipo == 'REPLACEMENT' or mov.tipo == 'ADJ_NEG' %}
+                                <span class="text-danger"><i class="fas fa-map-marker-alt"></i> From: {{ mov.origen }}</span>
+                            {% endif %}
+                            
+                            {% if mov.razon_ajuste %}
+                                <div class="text-muted fst-italic mt-1 border-top pt-1">
+                                    <i class="fas fa-comment-alt me-1"></i>{{ mov.razon_ajuste|truncatechars:30 }}
+                                </div>
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            <small class="text-muted">
+                                <i class="fas fa-user-circle me-1"></i>{{ mov.usuario.username|default:"System" }}
+                            </small>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <div class="mb-3">
+                                <i class="fas fa-search fa-3x text-light"></i>
+                            </div>
+                            <h5>No movements found</h5>
+                            <p class="small">Try adjusting the date filters or movement type.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

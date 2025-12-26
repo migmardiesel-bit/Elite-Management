@@ -1,0 +1,64 @@
+{% extends 'Inventario/base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 700px;">
+    <div class="card card-elite shadow-lg border-0">
+        <div class="card-header bg-white py-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0 fw-bold" style="color: var(--elite-dark);">
+                    {% if form.instance.pk %}
+                        <i class="fas fa-map-marker-alt me-2"></i>Edit Site / Location
+                    {% else %}
+                        <i class="fas fa-map-pin me-2"></i>New Site
+                    {% endif %}
+                </h3>
+                <a href="{% url 'destino_list' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Back to List
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body p-4">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Site Name / Identifier</label>
+                        {{ form.nombre }}
+                        <div class="form-text small">Ex: "Beacon Apartment", "Main Warehouse", "Unit 402"</div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Full Address</label>
+                        {{ form.direccion }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Manager / Contact (Optional)</label>
+                        {{ form.encargado }}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Type (Optional)</label>
+                        {{ form.tipo }}
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5">
+                    <a href="{% url 'destino_list' %}" class="btn btn-light me-md-2 fw-bold text-muted">Cancel</a>
+                    <button type="submit" class="btn btn-elite btn-lg px-5 shadow-sm">
+                        <i class="fas fa-save me-2"></i>SAVE SITE
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

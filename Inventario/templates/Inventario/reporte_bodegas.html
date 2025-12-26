@@ -1,0 +1,168 @@
+{% extends 'Inventario/base.html' %}
+
+{% block page_title %}Location Inventory{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4 g-3">
+    <div class="col-md-5">
+        <h2 style="color: var(--elite-dark); font-weight: 700;">Location Inventory</h2>
+        <p class="text-muted mb-0">Stock breakdown per warehouse / site</p>
+    </div>
+    <div class="col-md-7 d-flex gap-2 justify-content-md-end flex-wrap">
+        <div class="input-group" style="max-width: 250px;">
+            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+            <input type="text" id="inventorySearch" class="form-control border-start-0 ps-0" placeholder="Search product or site...">
+        </div>
+        
+        <a href="?export=general_excel" class="btn btn-success text-nowrap shadow-sm">
+            <i class="fas fa-file-csv me-2"></i>Export All Sites
+        </a>
+
+        <a href="{% url 'movimiento_create' %}" class="btn btn-elite text-nowrap shadow-sm">
+            <i class="fas fa-exchange-alt me-2"></i>Transfer Items
+        </a>
+    </div>
+</div>
+
+{% if inventario_completo %}
+    <div class="accordion" id="accordionBodegas">
+        {% for bodega in inventario_completo %}
+        <div class="card shadow-sm border-0 mb-3 bodega-card">
+            
+            <div class="card-header bg-white py-3 border-0" id="heading{{ bodega.sitio.id }}">
+                <div class="d-flex justify-content-between align-items-center">
+                    
+                    <div class="d-flex align-items-center flex-grow-1 cursor-pointer" 
+                         data-bs-toggle="collapse" 
+                         data-bs-target="#collapse{{ bodega.sitio.id }}" 
+                         aria-expanded="false" 
+                         style="cursor: pointer;">
+                        
+                        <div class="bg-light rounded-circle p-3 me-3 text-success transition-icon">
+                            <i class="fas fa-warehouse fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold text-dark search-target">{{ bodega.sitio.nombre }}</h5>
+                            <small class="text-muted search-target"><i class="fas fa-map-marker-alt me-1"></i>{{ bodega.sitio.direccion }}</small>
+                        </div>
+                        <i class="fas fa-chevron-down ms-3 text-muted"></i>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="text-end d-none d-md-block">
+                            <div class="badge bg-success bg-opacity-10 text-success px-3 py-1">
+                                {{ bodega.total_items }} Items
+                            </div>
+                            <div class="small fw-bold text-secondary mt-1">
+                                ${{ bodega.valor_total|floatformat:2 }}
+                            </div>
+                        </div>
+                        
+                        <a href="?export=excel&bodega_id={{ bodega.sitio.id }}" 
+                           class="btn btn-outline-secondary btn-sm fw-bold" 
+                           onclick="event.stopPropagation();" 
+                           title="Export ONLY this warehouse">
+                            <i class="fas fa-download"></i> <span class="d-none d-lg-inline">One</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="collapse{{ bodega.sitio.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ bodega.sitio.id }}">
+                <div class="card-body p-0 border-top">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">Code</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Product</th>
+                                    <th class="py-3 text-uppercase small fw-bold text-muted">Category</th>
+                                    <th class="text-center py-3 text-uppercase small fw-bold text-muted">Qty</th>
+                                    <th class="text-end pe-4 py-3 text-uppercase small fw-bold text-muted">Valuation</th>
+                                </tr>
+                            </thead>
+                            <tbody class="searchable-list">
+                                {% for item in bodega.items %}
+                                <tr class="search-item">
+                                    <td class="ps-4 text-secondary fw-bold search-target">{{ item.producto.codigo }}</td>
+                                    <td>
+                                        <div class="fw-bold text-dark search-target">{{ item.producto.nombre }}</div>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border search-target">{{ item.producto.categoria }}</span></td>
+                                    <td class="text-center">
+                                        <span class="fw-bold fs-5 text-primary">{{ item.cantidad }}</span>
+                                    </td>
+                                    <td class="text-end pe-4 text-muted">
+                                        ${{ item.producto.precio_venta }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+{% else %}
+    <div class="text-center py-5">
+        <div class="display-1 text-muted opacity-25 mb-3">
+            <i class="fas fa-box-open"></i>
+        </div>
+        <h4>No inventory found in sites</h4>
+        <p class="text-muted">Transfer products from Central Warehouse to see them here.</p>
+        <a href="{% url 'movimiento_create' %}" class="btn btn-primary mt-2">Start Transfer</a>
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('inventorySearch');
+        const cards = document.querySelectorAll('.bodega-card');
+
+        searchInput.addEventListener('keyup', function(e) {
+            const term = e.target.value.toLowerCase();
+
+            cards.forEach(card => {
+                const headerText = card.querySelector('.card-header').innerText.toLowerCase();
+                const tableRows = card.querySelectorAll('tbody tr');
+                
+                let foundInCard = false;
+
+                if (headerText.includes(term)) {
+                    foundInCard = true;
+                    tableRows.forEach(row => row.style.display = '');
+                } else {
+                    let foundInTable = false;
+                    tableRows.forEach(row => {
+                        const rowText = row.innerText.toLowerCase();
+                        if (rowText.includes(term)) {
+                            row.style.display = '';
+                            foundInTable = true;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                    foundInCard = foundInTable;
+                }
+
+                const collapseElement = card.querySelector('.accordion-collapse');
+                const bsCollapse = new bootstrap.Collapse(collapseElement, {toggle: false});
+
+                if (foundInCard) {
+                    card.style.display = '';
+                    if (term.length > 0) bsCollapse.show();
+                    else bsCollapse.hide();
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,278 @@
+{% extends 'Inventario/base.html' %}
+
+{% block page_title %}Product Catalog{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 style="color: var(--elite-dark);">Product Catalog</h2>
+        <p class="text-muted small mb-0">Manage inventory, monitor stock levels, and create purchasing lists.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'shopping_list' %}" class="btn btn-outline-dark shadow-sm">
+            <i class="fas fa-list-alt me-2"></i>My Shopping Lists
+        </a>
+        <a href="{% url 'producto_create' %}" class="btn btn-elite shadow-sm">
+            <i class="fas fa-plus me-2"></i>New Product
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4 shadow-sm border-0">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            
+            <div class="col-md-4">
+                <label class="form-label fw-bold text-muted small">Search</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" name="q" class="form-control border-start-0 ps-0" 
+                           placeholder="Code, name..." 
+                           value="{{ request.GET.q }}">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold text-muted small">Category</label>
+                <select name="categoria" class="form-select select2">
+                    <option value="">-- All Categories --</option>
+                    <option value="Kitchen" {% if request.GET.categoria == 'Kitchen' %}selected{% endif %}>Kitchen</option>
+                    <option value="Livingroom" {% if request.GET.categoria == 'Livingroom' %}selected{% endif %}>Living Room</option>
+                    <option value="Bedroom" {% if request.GET.categoria == 'Bedroom' %}selected{% endif %}>Bedroom</option>
+                    <option value="Bathroom" {% if request.GET.categoria == 'Bathroom' %}selected{% endif %}>Bathroom</option>
+                    <option value="Maintenance" {% if request.GET.categoria == 'Maintenance' %}selected{% endif %}>Maintenance / Tools</option>
+                    <option value="Other" {% if request.GET.categoria == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold text-muted small">Stock Status</label>
+                <select name="stock_status" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- Any Status --</option>
+                    <option value="alert" {% if request.GET.stock_status == 'alert' %}selected{% endif %}>⚠️ All Alerts (Low + Critical)</option>
+                    <option value="critical" {% if request.GET.stock_status == 'critical' %}selected{% endif %}>🔴 Critical (Out of Stock)</option>
+                    <option value="low" {% if request.GET.stock_status == 'low' %}selected{% endif %}>🟡 Low Stock</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-dark flex-grow-1 fw-bold">
+                    <i class="fas fa-filter"></i>
+                </button>
+                
+                <button type="submit" name="export" value="excel" class="btn btn-success fw-bold" title="Download Excel">
+                    <i class="fas fa-file-excel"></i>
+                </button>
+            </div>
+
+            {% if request.GET.q or request.GET.categoria or request.GET.stock_status %}
+            <div class="col-12 text-end mt-2">
+                <a href="{% url 'producto_list' %}" class="text-danger small text-decoration-none fw-bold">
+                    <i class="fas fa-times me-1"></i> Clear Filters
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<form method="POST" action="{% url 'generar_lista' %}" id="shoppingListForm">
+    {% csrf_token %}
+    
+    <div class="card shadow-sm border-0" style="transform: none !important;">
+        <div class="card-header bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="selectAll">
+                <label class="form-check-label text-muted small user-select-none" for="selectAll">
+                    Select All
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm fw-bold px-4 shadow-sm">
+                <i class="fas fa-shopping-cart me-2"></i>Create Shopping List
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 40px;"></th> <th>Code</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Supplier</th>
+                        <th>Global Stock</th> 
+                        <th class="text-end">Value</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos %}
+                    <tr class="{% if producto.stock_global <= 0 %}table-danger bg-opacity-10{% elif producto.stock_global <= producto.stock_minimo %}table-warning bg-opacity-10{% endif %}">
+                        
+                        <td>
+                            <input class="form-check-input product-check" type="checkbox" name="selected_products" value="{{ producto.id }}">
+                        </td>
+
+                        <td class="fw-bold text-secondary">{{ producto.codigo }}</td>
+                        
+                        <td class="fw-semibold text-dark">{{ producto.nombre }}</td>
+                        
+                        <td>
+                            <span class="badge bg-light text-dark border fw-normal">
+                                {{ producto.get_categoria_display }}
+                            </span>
+                        </td>
+                        
+                        <td><small class="text-muted">{{ producto.proveedor.nombre|default:"-" }}</small></td>
+                        
+                        <td>
+                            {% if producto.stock_global <= 0 %}
+                                <span class="badge bg-danger text-white px-3">
+                                    CRITICAL
+                                </span>
+                            {% elif producto.stock_global <= producto.stock_minimo %}
+                                <span class="badge bg-warning text-dark px-3">
+                                    {{ producto.stock_global }} (Low)
+                                </span>
+                            {% else %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success px-3">
+                                    {{ producto.stock_global }}
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-end fw-bold text-success">
+                            ${{ producto.valor_total }}
+                        </td>
+                        
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#stockModal-{{ producto.id }}" 
+                                        title="View Locations">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+
+                                <a href="{% url 'producto_edit' producto.id %}" class="btn btn-sm btn-outline-secondary" title="Edit Product">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <div class="mb-2"><i class="fas fa-search fa-2x opacity-25"></i></div>
+                            No products found matching your criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if is_paginated %}
+        <div class="card-footer bg-white border-top-0 d-flex justify-content-center pt-3">
+            <nav>
+                <ul class="pagination pagination-sm">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link text-dark" href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}&categoria={{ request.GET.categoria }}&stock_status={{ request.GET.stock_status }}">Previous</a></li>
+                    {% endif %}
+                    <li class="page-item disabled"><span class="page-link text-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link text-dark" href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&categoria={{ request.GET.categoria }}&stock_status={{ request.GET.stock_status }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</form>
+
+{% for producto in productos %}
+<div class="modal fade stock-modal-fix" id="stockModal-{{ producto.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-white border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-primary">
+                    <i class="fas fa-box me-2"></i>{{ producto.nombre }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="p-2 mb-3 bg-light rounded text-muted small d-flex justify-content-between">
+                    <span>Code: <strong>{{ producto.codigo }}</strong></span>
+                    <span>Min Stock: <strong>{{ producto.stock_minimo }}</strong></span>
+                </div>
+
+                <div class="table-responsive border rounded" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table mb-0 table-sm">
+                        <thead class="bg-light text-secondary sticky-top">
+                            <tr>
+                                <th class="ps-3 border-0">Warehouse / Site</th>
+                                <th class="text-center border-0">Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inv in producto.inventarios.all %}
+                                {% if inv.cantidad > 0 %}
+                                <tr>
+                                    <td class="ps-3 fw-bold text-dark border-bottom-0">
+                                        <i class="fas fa-map-marker-alt me-2 text-danger"></i>{{ inv.ubicacion.nombre }}
+                                    </td>
+                                    <td class="text-center border-bottom-0">
+                                        <span class="badge bg-success fs-6 shadow-sm">{{ inv.cantidad }}</span>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center py-4 text-muted border-bottom-0">
+                                        <i class="fas fa-box-open me-2"></i>No stock in specific locations.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="modal-footer bg-light border-top-0 py-2">
+                <div class="me-auto text-dark small">
+                    Total Global Stock: <strong>{{ producto.stock_global }}</strong>
+                </div>
+                <button type="button" class="btn btn-sm btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        // 1. Solución modales
+        $('.stock-modal-fix').appendTo("body");
+
+        // 2. Select All Logic
+        $('#selectAll').click(function() {
+            $('.product-check').prop('checked', this.checked);
+        });
+
+        // 3. Optional: Highlight rows when checked
+        $('.product-check').change(function() {
+            if(this.checked) {
+                $(this).closest('tr').addClass('table-active');
+            } else {
+                $(this).closest('tr').removeClass('table-active');
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'Inventario/base.html' %}
+
+{% block page_title %}Shopping Lists{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 style="color: var(--elite-dark);">Shopping Lists</h2>
+        <p class="text-muted small mb-0">History of purchase orders and lists.</p>
+    </div>
+    <a href="{% url 'producto_list' %}?stock_status=alert" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus me-2"></i>Create New List
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>List ID</th>
+                    <th>Status</th>
+                    <th>Created By</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lista in listas %}
+                <tr>
+                    <td class="text-muted small">{{ lista.fecha_creacion|date:"M d, Y H:i" }}</td>
+                    <td class="fw-bold text-dark">{{ lista.id_lista }}</td>
+                    <td>
+                        {% if lista.estado == 'PENDING' %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% elif lista.estado == 'COMPLETED' %}
+                            <span class="badge bg-success">Completed</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ lista.get_estado_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td><small>{{ lista.usuario.username|default:"System" }}</small></td>
+                    <td class="text-end">
+                        <a href="{% url 'shopping_list_detail' lista.id %}" class="btn btn-sm btn-outline-primary">
+                            View Details <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="fas fa-clipboard-list fa-2x mb-3 opacity-25"></i><br>
+                        No shopping lists found. Start by selecting items in the Product Catalog.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

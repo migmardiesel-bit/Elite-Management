@@ -1,0 +1,176 @@
+{% extends 'Inventario/base.html' %}
+
+{% block page_title %}Stock Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1000px;">
+    <div class="card card-elite shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold" style="color: var(--elite-primary);">
+                <i class="fas fa-dolly me-2"></i>Register New Movement
+            </h5>
+        </div>
+
+        <div class="card-body p-4">
+            <form method="post" id="movementForm">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger shadow-sm border-0 rounded-3 mb-4">
+                    <i class="fas fa-exclamation-circle me-2"></i>{{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Product</label>
+                        {{ form.producto }}
+                        {% if form.producto.errors %}
+                            <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.producto.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Movement Type</label>
+                        {{ form.tipo }}
+                        {% if form.tipo.errors %}
+                            <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.tipo.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Date</label>
+                        {{ form.fecha }}
+                        {% if form.fecha.errors %}
+                            <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.fecha.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Quantity</label>
+                        {{ form.cantidad }}
+                        {% if form.cantidad.errors %}
+                            <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.cantidad.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6" id="div_origen" style="display: none;">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <label class="form-label fw-bold text-danger" id="lbl_origen">Origin</label>
+                            {{ form.origen }}
+                            <div class="form-text small mt-2" id="help_origen">Select source warehouse.</div>
+                            {% if form.origen.errors %}
+                                <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.origen.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6" id="div_destino" style="display: none;">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <label class="form-label fw-bold text-success" id="lbl_destino">Destination</label>
+                            {{ form.destino }}
+                            <div class="form-text small mt-2" id="help_destino">Select destination warehouse.</div>
+                            {% if form.destino.errors %}
+                                <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.destino.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Adjustment Reason / Notes</label>
+                        {{ form.razon_ajuste }}
+                        <div class="form-text">Required for manual adjustments. Optional for purchases/sales.</div>
+                        {% if form.razon_ajuste.errors %}
+                            <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ form.razon_ajuste.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mt-5 d-flex gap-3 justify-content-end border-top pt-4">
+                    <a href="{% url 'dashboard' %}" class="btn btn-light border px-4">Cancel</a>
+                    <button type="submit" class="btn btn-elite px-5">
+                        <i class="fas fa-save me-2"></i>Save Movement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Since base.html loads jQuery at the end, we put our script here in 'extra_scripts'
+    $(document).ready(function() {
+        
+        // 1. Elements
+        const $tipoSelect = $('#id_tipo'); // jQuery Selector
+        const divOrigen = document.getElementById('div_origen');
+        const divDestino = document.getElementById('div_destino');
+        
+        const lblOrigen = document.getElementById('lbl_origen');
+        const helpOrigen = document.getElementById('help_origen');
+        const lblDestino = document.getElementById('lbl_destino');
+        const helpDestino = document.getElementById('help_destino');
+
+        // 2. Logic Function
+        function toggleCampos() {
+            // Get value using jQuery (works with Select2)
+            const tipo = $tipoSelect.val();
+
+            // Reset (Hide both)
+            divOrigen.style.display = 'none';
+            divDestino.style.display = 'none';
+
+            // Switch Logic based on your Django Model choices
+            switch (tipo) {
+                // CASE 1: TRANSFER (Needs Origin & Destination)
+                case 'TRANSFER':
+                    mostrarOrigen("From (Origin Site)", "Warehouse where items are taken FROM.");
+                    mostrarDestino("To (Destination Site)", "Warehouse where items are going TO.");
+                    break;
+                
+                // CASE 2: OUTFLOWS (Needs Origin) - Deducting Stock
+                case 'OUT':
+                    mostrarOrigen("Source Inventory", "Select the site to deduct stock from.");
+                    break;
+                case 'REPLACEMENT':
+                    mostrarOrigen("Part Taken From", "Select warehouse where the replacement part was taken.");
+                    break;
+                case 'ADJ_NEG':
+                    mostrarOrigen("Inventory to Deduct (-)", "Select warehouse to reduce stock count.");
+                    break;
+
+                // CASE 3: INFLOWS (Needs Destination) - Adding Stock
+                case 'IN':
+                    mostrarDestino("Receive At (Destination)", "Select warehouse to receive the new items.");
+                    break;
+                case 'ADJ_POS':
+                    mostrarDestino("Inventory to Add (+)", "Select warehouse to increase stock count.");
+                    break;
+            }
+        }
+
+        // Helper functions
+        function mostrarOrigen(txt, help) {
+            divOrigen.style.display = 'block';
+            lblOrigen.innerText = txt;
+            helpOrigen.innerText = help;
+        }
+
+        function mostrarDestino(txt, help) {
+            divDestino.style.display = 'block';
+            lblDestino.innerText = txt;
+            helpDestino.innerText = help;
+        }
+
+        // 3. Initialize Events
+        
+        // A) Run on load (in case of form errors/reload)
+        toggleCampos();
+
+        // B) Listen for changes (Standard change + Select2 event)
+        $tipoSelect.on('change select2:select', function (e) {
+            toggleCampos();
+        });
+    });
+</script>
+{% endblock %}

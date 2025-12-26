@@ -1,0 +1,396 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Management - Inventory Control System</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+    <style>
+        :root {
+            /* --- PALETA DE COLORES ELITE --- */
+            --elite-dark: #2c3e10; 
+            --elite-primary: #435712;
+            --elite-accent: #AAB646;
+            --elite-bg: #f0f2f5; 
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            
+            /* Variables de Diseño */
+            --sidebar-width: 280px;
+            --card-radius: 16px;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            --hover-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--elite-bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- TARJETAS --- */
+        .card {
+            border: none;
+            border-radius: var(--card-radius);
+            box-shadow: var(--card-shadow);
+            background: #ffffff;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .card:not([style*="transform: none"]):hover {
+            box-shadow: var(--hover-shadow);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: var(--elite-primary);
+        }
+
+        .card-body { padding: 1.5rem; }
+        .card-elite { border-top: 4px solid var(--elite-accent); }
+
+        /* --- TABLAS --- */
+        .table-responsive {
+            border-radius: var(--card-radius);
+            overflow: hidden;
+        }
+
+        .table { margin-bottom: 0; border-collapse: collapse; }
+
+        .table thead th {
+            background-color: #f8fafc;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .table tbody td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+            color: var(--text-main);
+            border-bottom: 1px solid #edf2f7;
+            font-size: 0.95rem;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f1f5f9;
+            transition: background-color 0.2s;
+        }
+
+        .badge {
+            padding: 0.5em 0.8em;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            border-radius: 6px;
+        }
+
+        /* --- FORMULARIOS --- */
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background-color: #fcfcfc;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--elite-accent);
+            box-shadow: 0 0 0 3px rgba(170, 182, 70, 0.15);
+            background-color: #fff;
+        }
+        
+        .select2-container--bootstrap-5 .select2-selection {
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding-top: 0.3rem;
+            padding-bottom: 0.3rem;
+        }
+
+        /* --- BOTONES --- */
+        .btn-elite {
+            background-color: var(--elite-primary);
+            color: white;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            box-shadow: 0 4px 6px rgba(67, 87, 18, 0.2);
+            transition: all 0.2s;
+        }
+        .btn-elite:hover {
+            background-color: var(--elite-dark);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(67, 87, 18, 0.3);
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            background: linear-gradient(180deg, var(--elite-primary) 0%, #2c3e10 100%);
+            min-height: 100vh;
+            color: white;
+            width: var(--sidebar-width);
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        body.sidebar-closed .sidebar { transform: translateX(-100%); }
+
+        .sidebar-brand {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            background-color: rgba(0,0,0,0.05);
+        }
+
+        .logo-container {
+            background-color: white;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            display: inline-block;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            margin: 8px 12px;
+            border-radius: 8px;
+            padding: 12px 16px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar .nav-link.active {
+            background-color: var(--elite-accent);
+            color: var(--elite-dark);
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .sidebar-section-title {
+            font-size: 0.7rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.5); 
+            font-weight: 700; 
+            padding: 0 24px; 
+            margin: 24px 0 8px 0;
+        }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 0;
+            width: calc(100% - var(--sidebar-width));
+            min-height: 100vh;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.sidebar-closed .main-content { margin-left: 0; width: 100%; }
+        
+        .content-header {
+            background-color: white;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #f0f0f0; 
+            display: flex; align-items: center; gap: 20px;
+            position: sticky; top: 0; z-index: 900;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        
+        .content-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--elite-primary);
+            margin: 0;
+        }
+        
+        .content-body { padding: 2rem; }
+
+        #desktop-toggle-btn {
+            background: transparent; border: none; color: var(--elite-primary);
+            font-size: 1.4rem; cursor: pointer; padding: 8px;
+            border-radius: 8px; transition: all 0.2s;
+        }
+        #desktop-toggle-btn:hover { background-color: #f0f2f5; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 260px; }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0; width: 100%; }
+            .mobile-menu-btn {
+                display: block; position: fixed; top: 15px; left: 15px; z-index: 1100;
+                background-color: var(--elite-primary); color: white; border: none;
+                border-radius: 12px; width: 45px; height: 45px; box-shadow: var(--card-shadow);
+            }
+            #desktop-toggle-btn { display: none; }
+            .content-body { padding: 1rem; }
+        }
+        @media (min-width: 769px) { .mobile-menu-btn { display: none; } }
+    </style>
+</head>
+<body class="{% if request.COOKIES.sidebar_closed == 'true' %}sidebar-closed{% endif %}">
+    <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="logo-container">
+                <img src="{% static 'Inventario/img/logo.png' %}" alt="Elite Logo" class="img-fluid" style="max-height: 50px;">
+            </div>
+            <h6 class="mb-0 text-uppercase fw-bold mt-2" style="letter-spacing: 1px;">Elite Management</h6>
+        </div>
+        
+        <ul class="nav flex-column px-2">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </li>
+            
+            <div class="sidebar-section-title">Catalog</div>
+            <li class="nav-item">
+                <a class="nav-link {% if 'producto' in request.path %}active{% endif %}" href="{% url 'producto_list' %}">
+                    <i class="fas fa-box"></i> Products
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'proveedor' in request.path %}active{% endif %}" href="{% url 'proveedor_list' %}">
+                    <i class="fas fa-truck"></i> Suppliers
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'destino' in request.path %}active{% endif %}" href="{% url 'destino_list' %}">
+                    <i class="fas fa-map-marker-alt"></i> Sites
+                </a>
+            </li>
+            
+            <div class="sidebar-section-title">Stock Management</div>
+            <li class="nav-item">
+                <a class="nav-link {% if 'movimiento' in request.path and 'reporte' not in request.path %}active{% endif %}" href="{% url 'movimiento_create' %}">
+                    <i class="fas fa-dolly"></i> Movements
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link {% if 'shopping' in request.path %}active{% endif %}" href="{% url 'shopping_list' %}">
+                    <i class="fas fa-shopping-cart"></i> Shopping List
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="https://calendar.google.com/calendar/u/0/r" target="_blank">
+                    <i class="fas fa-calendar-alt" style="color: #aab646;"></i> Google Calendar
+                </a>
+            </li>
+            
+            <div class="sidebar-section-title">Reports</div>
+            <li class="nav-item">
+                <a class="nav-link {% if 'reportes/movimientos' in request.path %}active{% endif %}" href="{% url 'reporte_movimientos' %}">
+                    <i class="fas fa-chart-line"></i> History
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'reportes/bodegas' in request.path %}active{% endif %}" href="{% url 'reporte_bodegas' %}">
+                    <i class="fas fa-warehouse"></i> Location Inventory
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'reportes/financiero' in request.path %}active{% endif %}" href="{% url 'reporte_financiero' %}">
+                    <i class="fas fa-file-invoice-dollar"></i> Cost Reports
+                </a>
+            </li>
+            
+            <div class="mt-auto pt-5 mb-4 px-3">
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-light w-100 border-0 text-start ps-3" style="background: rgba(255,255,255,0.1);">
+                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="content-header">
+            <button id="desktop-toggle-btn" title="Toggle Menu"><i class="fas fa-bars"></i></button>
+            <div>
+                <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                {% block breadcrumb %}{% endblock %}
+            </div>
+        </div>
+        <div class="content-body">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const desktopBtn = document.getElementById('desktop-toggle-btn');
+            const mobileBtn = document.querySelector('.mobile-menu-btn');
+            const sidebar = document.querySelector('.sidebar');
+            const body = document.body;
+
+            if (localStorage.getItem('sidebar-closed') === 'true') {
+                body.classList.add('sidebar-closed');
+            }
+
+            if (desktopBtn) {
+                desktopBtn.addEventListener('click', function() {
+                    body.classList.toggle('sidebar-closed');
+                    localStorage.setItem('sidebar-closed', body.classList.contains('sidebar-closed'));
+                });
+            }
+            if(mobileBtn) {
+                mobileBtn.addEventListener('click', () => sidebar.classList.toggle('active'));
+            }
+        });
+
+        $(document).ready(function() {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Select an option...',
+                allowClear: true
+            });
+        });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
